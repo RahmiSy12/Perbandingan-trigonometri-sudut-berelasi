@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trigonometri Sudut Berelasi</title>
+    <style>
+        :root {
+            --primary: #1e3a8a; /* Navy */
+            --secondary: #3b82f6; /* Biru muda */
+            --bg-color: #f0f9ff;
+            --text-dark: #1e293b;
+            --text-light: #ffffff;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --card-bg: #ffffff;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --radius: 12px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+
+        body { background-color: var(--bg-color); color: var(--text-dark); line-height: 1.6; }
+
+        /* Navigation */
+        header { background-color: var(--primary); color: var(--text-light); position: sticky; top: 0; z-index: 1000; box-shadow: var(--shadow); }
+        .nav-container { display: flex; justify-content: space-between; align-items: center; padding: 1rem 2rem; max-width: 1200px; margin: 0 auto; }
+        .logo { font-size: 1.5rem; font-weight: bold; }
+        nav ul { display: flex; list-style: none; gap: 1.5rem; }
+        nav a { color: var(--text-light); text-decoration: none; font-weight: 500; padding: 0.5rem 1rem; border-radius: var(--radius); transition: background 0.3s; cursor: pointer; }
+        nav a:hover, nav a.active { background-color: var(--secondary); }
+        
+        .controls { display: flex; gap: 1rem; }
+        button { border: none; background: var(--secondary); color: white; padding: 0.5rem 1rem; border-radius: var(--radius); cursor: pointer; font-size: 1rem; font-weight: bold; transition: opacity 0.3s; min-height: 48px; min-width: 48px;}
+        button:hover { opacity: 0.8; }
+        .hamburger { display: none; background: transparent; font-size: 1.5rem; }
+
+        /* Layout & Cards */
+        main { max-width: 1200px; margin: 2rem auto; padding: 0 1rem; }
+        .section { display: none; animation: fadeIn 0.5s ease-in; }
+        .section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .card { background: var(--card-bg); padding: 1.5rem; border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 1.5rem; }
+        .grid-4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+
+        /* Progress Bar */
+        .progress-container { background: #e2e8f0; border-radius: 20px; height: 20px; width: 100%; overflow: hidden; margin: 1rem 0; }
+        .progress-bar { background: var(--success); height: 100%; width: 0%; transition: width 0.5s ease; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.8rem; font-weight: bold; }
+
+        /* Flashcard */
+        .flashcard { perspective: 1000px; width: 100%; height: 200px; cursor: pointer; }
+        .flashcard-inner { position: relative; width: 100%; height: 100%; text-align: center; transition: transform 0.6s; transform-style: preserve-3d; }
+        .flashcard.flipped .flashcard-inner { transform: rotateY(180deg); }
+        .flashcard-front, .flashcard-back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; display: flex; align-items: center; justify-content: center; border-radius: var(--radius); box-shadow: var(--shadow); padding: 1rem; font-size: 1.2rem; font-weight: bold; }
+        .flashcard-front { background-color: var(--primary); color: white; }
+        .flashcard-back { background-color: var(--secondary); color: white; transform: rotateY(180deg); }
+
+        /* Simulation Area */
+        .sim-area { text-align: center; padding: 2rem; background: var(--bg-color); border-radius: var(--radius); border: 2px dashed var(--secondary); }
+        .quadrant-btn { margin: 0.5rem; background: var(--primary); }
+
+        /* Latihan */
+        .drag-container { display: flex; gap: 1rem; margin-top: 1rem; flex-wrap: wrap;}
+        .draggable { padding: 1rem; background: var(--primary); color: white; border-radius: var(--radius); cursor: grab; }
+        .dropzone { padding: 2rem; border: 2px dashed var(--primary); border-radius: var(--radius); min-width: 150px; text-align: center; background: #e0f2fe;}
+
+        /* Footer */
+        footer { text-align: center; padding: 2rem; background: var(--primary); color: white; margin-top: 3rem; }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hamburger { display: block; }
+            nav ul { display: none; flex-direction: column; width: 100%; background: var(--primary); position: absolute; top: 100%; left: 0; padding: 1rem 0; box-shadow: var(--shadow); }
+            nav ul.show { display: flex; }
+            .nav-container { flex-wrap: wrap; }
+            .grid-2 { grid-template-columns: 1fr; }
+        }
+        
+        .hidden { display: none !important; }
+        .text-center { text-align: center; }
+        .mt-2 { margin-top: 2rem; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="nav-container">
+            <div class="logo">TrigoEdu 📐</div>
+            <nav>
+                <ul id="navMenu">
+                    <li><a onclick="navigate('beranda')" class="active" id="nav-beranda" aria-label="Beranda">Beranda</a></li>
+                    <li><a onclick="navigate('materi')" id="nav-materi" aria-label="Materi">Materi</a></li>
+                    <li><a onclick="navigate('latihan')" id="nav-latihan" aria-label="Latihan">Latihan</a></li>
+                    <li><a onclick="navigate('refleksi')" id="nav-refleksi" aria-label="Refleksi">Refleksi</a></li>
+                    <li><a onclick="navigate('pengembang')" id="nav-pengembang" aria-label="Pengembang">Pengembang</a></li>
+                </ul>
+            </nav>
+            <div class="controls">
+                <button onclick="toggleAudio()" aria-label="Toggle Musik Latar">🎵 Mute</button>
+                <button onclick="toggleFullScreen()" aria-label="Layar Penuh">⛶</button>
+                <button class="hamburger" onclick="toggleMenu()" aria-label="Menu">☰</button>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <section id="beranda" class="section active">
+            <div class="card text-center" style="background: var(--primary); color: white;">
+                <h1>Selamat Datang di TrigoEdu! 👋</h1>
+                <p>Mari belajar Perbandingan Trigonometri pada Sudut Berelasi dengan mudah dan menyenangkan.</p>
+                <button onclick="navigate('materi')" class="mt-2" style="background: var(--warning); color: var(--text-dark);">🚀 Mulai Belajar</button>
+            </div>
+
+            <div class="card">
+                <h2>Dashboard Kemajuan Belajar 🏆</h2>
+                <div class="progress-container" aria-label="Progress belajar">
+                    <div class="progress-bar" id="mainProgress">0%</div>
+                </div>
+                <p id="badgeArea">🏅 Badge: <span id="badgeText">Pemula</span></p>
+            </div>
+
+            <h3 class="mt-2">Jelajahi Kuadran</h3>
+            <div class="grid-4 mt-2">
+                <div class="card text-center"><h3>Kuadran I</h3><p>0° - 90°<br>Semua Positif</p></div>
+                <div class="card text-center"><h3>Kuadran II</h3><p>90° - 180°<br>Sinus Positif</p></div>
+                <div class="card text-center"><h3>Kuadran III</h3><p>180° - 270°<br>Tangen Positif</p></div>
+                <div class="card text-center"><h3>Kuadran IV</h3><p>270° - 360°<br>Cosinus Positif</p></div>
+            </div>
+        </section>
+
+        <section id="materi" class="section">
+            <div class="card">
+                <h2>📚 Materi: Sudut Berelasi</h2>
+                <p>Pilih kuadran untuk melihat penjelasannya.</p>
+                <div class="controls mt-2">
+                    <button onclick="showKuadran(1)">Kuadran I</button>
+                    <button onclick="showKuadran(2)">Kuadran II</button>
+                    <button onclick="showKuadran(3)">Kuadran III</button>
+                    <button onclick="showKuadran(4)">Kuadran IV</button>
+                </div>
+                
+                <div id="materiContent" class="card mt-2" style="background: var(--bg-color);">
+                    <h3 id="matTitle">Kuadran I (0° - 90°)</h3>
+                    <p id="matDesc">Di Kuadran I, nilai sin, cos, dan tan semuanya bernilai positif.</p>
+                    <button onclick="playTTS()" class="mt-2">🔊 Dengarkan</button>
+                </div>
+
+                <h3 class="mt-2">Flashcard Interaktif 🔄</h3>
+                <p>Klik kartu untuk membalik dan melihat rumus!</p>
+                <div class="grid-2 mt-2">
+                    <div class="flashcard" onclick="this.classList.toggle('flipped'); playSFX('click')">
+                        <div class="flashcard-inner">
+                            <div class="flashcard-front">sin(90° - α)</div>
+                            <div class="flashcard-back">cos α</div>
+                        </div>
+                    </div>
+                    <div class="flashcard" onclick="this.classList.toggle('flipped'); playSFX('click')">
+                        <div class="flashcard-inner">
+                            <div class="flashcard-front">cos(180° - α)</div>
+                            <div class="flashcard-back">-cos α</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mt-2 sim-area">
+                    <h3>Mini Simulasi Tanda Kuadran 🎮</h3>
+                    <p>Klik tombol untuk mengecek tanda pada kuadran tersebut.</p>
+                    <button class="quadrant-btn" onclick="checkSim(1)">Kuadran I</button>
+                    <button class="quadrant-btn" onclick="checkSim(2)">Kuadran II</button>
+                    <button class="quadrant-btn" onclick="checkSim(3)">Kuadran III</button>
+                    <button class="quadrant-btn" onclick="checkSim(4)">Kuadran IV</button>
+                    <p id="simResult" class="mt-2" style="font-weight: bold; font-size: 1.2rem;"></p>
+                </div>
+            </div>
+            <button onclick="updateProgress(50); navigate('latihan')" style="width: 100%;">Lanjut ke Latihan ➡️</button>
+        </section>
+
+        <section id="latihan" class="section">
+            <div class="card">
+                <h2>📝 Latihan Interaktif</h2>
+                <p>Skor Anda: <span id="scoreText">0</span>/100</p>
+                
+                <div class="card mt-2" style="background: var(--bg-color);">
+                    <h3>A. Benar-Salah</h3>
+                    <p>Nilai dari sin(180° - α) adalah sin α. Benar atau Salah?</p>
+                    <button onclick="checkAnswer(true, 'tf')">Benar</button>
+                    <button style="background: #ef4444;" onclick="checkAnswer(false, 'tf')">Salah</button>
+                    <p id="tfResult" class="mt-2"></p>
+                </div>
+
+                <div class="card mt-2" style="background: var(--bg-color);">
+                    <h3>B. Drag and Drop</h3>
+                    <p>Tarik rumus ke jawaban yang tepat.</p>
+                    <div class="drag-container">
+                        <div class="draggable" draggable="true" ondragstart="drag(event)" id="drag1">tan(180° + α)</div>
+                    </div>
+                    <div class="drag-container mt-2">
+                        <div class="dropzone" ondrop="drop(event)" ondragover="allowDrop(event)" id="drop1">
+                            Letakkan pasangan di sini (tan α)
+                        </div>
+                    </div>
+                    <p id="ddResult" class="mt-2"></p>
+                </div>
+                
+                <button onclick="resetLatihan()" style="background: var(--warning); color: var(--text-dark);">🔄 Ulangi Latihan</button>
+            </div>
+        </section>
+
+        <section id="refleksi" class="section">
+            <div class="card text-center">
+                <h2>🤔 Refleksi Belajar</h2>
+                <p>Apa yang kamu pelajari hari ini? Bagaimana perasaanmu?</p>
+                <div class="controls mt-2" style="justify-content: center;">
+                    <button onclick="submitRefleksi('🤩', 'Sangat Paham')" style="font-size: 2rem;">🤩</button>
+                    <button onclick="submitRefleksi('🙂', 'Cukup Paham')" style="font-size: 2rem;">🙂</button>
+                    <button onclick="submitRefleksi('🤔', 'Masih Belajar')" style="font-size: 2rem;">🤔</button>
+                </div>
+                <div id="refleksiResult" class="mt-2 hidden card" style="background: var(--bg-color);">
+                    <h3>Ringkasan Hasil Belajarmu:</h3>
+                    <p>Status: <span id="refStatus"></span></p>
+                    <p>Progres Akhir: <span id="refProg"></span>%</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="pengembang" class="section">
+            <div class="card text-center">
+                <h2>👨‍💻 Profil Pengembang</h2>
+                <div style="width: 100px; height: 100px; background: var(--secondary); border-radius: 50%; margin: 1rem auto; display: flex; align-items: center; justify-content: center; font-size: 3rem;">👩‍🏫</div>
+                <h3>RAHMI SYAFLIZANOFITRI</h3>
+                <p><strong>GURU MATEMATIKA SMAN 1 BANUHAMPU</strong></p>
+                <p>MEDIA PEMBELAJARAN MATEMATIKA</p>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 Rahmi Syaflizanofitri - SMAN 1 Banuhampu. Dibuat dengan ❤️ untuk Pendidikan.</p>
+    </footer>
+
+    <script>
+        // --- State Management ---
+        let progress = localStorage.getItem('trigo_progress') ? parseInt(localStorage.getItem('trigo_progress')) : 0;
+        let score = 0;
+        
+        // --- Initialization ---
+        document.addEventListener('DOMContentLoaded', () => {
+            updateProgress(progress);
+        });
+
+        // --- Navigation ---
+        function navigate(sectionId) {
+            playSFX('click');
+            document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
+            document.getElementById(sectionId).classList.add('active');
+            
+            document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
+            document.getElementById('nav-' + sectionId).classList.add('active');
+            
+            if(window.innerWidth <= 768) { document.getElementById('navMenu').classList.remove('show'); }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function toggleMenu() {
+            document.getElementById('navMenu').classList.toggle('show');
+        }
+
+        // --- Progress System ---
+        function updateProgress(val) {
+            progress = Math.min(100, Math.max(progress, val));
+            localStorage.setItem('trigo_progress', progress);
+            document.getElementById('mainProgress').style.width = progress + '%';
+            document.getElementById('mainProgress').innerText = progress + '%';
+            
+            let badge = "Pemula";
+            if(progress >= 50) badge = "Pakar Muda";
+            if(progress >= 100) badge = "Master Trigonometri 👑";
+            document.getElementById('badgeText').innerText = badge;
+        }
+
+        // --- Materi Logic ---
+        const materiData = {
+            1: { t: "Kuadran I (0° - 90°)", d: "Semua perbandingan trigonometri (sin, cos, tan) bernilai POSITIF. Relasi: (90° - α)" },
+            2: { t: "Kuadran II (90° - 180°)", d: "Hanya SINUS (dan Cosecan) yang bernilai POSITIF. Relasi: (180° - α) atau (90° + α)" },
+            3: { t: "Kuadran III (180° - 270°)", d: "Hanya TANGEN (dan Cotangen) yang bernilai POSITIF. Relasi: (180° + α) atau (270° - α)" },
+            4: { t: "Kuadran IV (270° - 360°)", d: "Hanya COSINUS (dan Secan) yang bernilai POSITIF. Relasi: (360° - α) atau (270° + α)" }
+        };
+
+        function showKuadran(q) {
+            playSFX('click');
+            document.getElementById('matTitle').innerText = materiData[q].t;
+            document.getElementById('matDesc').innerText = materiData[q].d;
+        }
+
+        function checkSim(q) {
+            playSFX('click');
+            let res = "";
+            if(q===1) res = "✅ Kuadran I: Sin (+), Cos (+), Tan (+)";
+            if(q===2) res = "✅ Kuadran II: Sin (+), Cos (-), Tan (-)";
+            if(q===3) res = "✅ Kuadran III: Sin (-), Cos (-), Tan (+)";
+            if(q===4) res = "✅ Kuadran IV: Sin (-), Cos (+), Tan (-)";
+            document.getElementById('simResult').innerText = res;
+            updateProgress(30);
+        }
+
+        // --- Latihan Logic ---
+        function checkAnswer(isTrue, type) {
+            const resEl = document.getElementById('tfResult');
+            if (isTrue) {
+                resEl.innerText = "🎉 Jawaban Benar! sin(180° - α) memang berada di kuadran II dimana sin positif.";
+                resEl.style.color = "var(--success)";
+                score += 50;
+                playSFX('correct');
+            } else {
+                resEl.innerText = "❌ Kurang tepat. Coba ingat tanda sinus di kuadran II.";
+                resEl.style.color = "#ef4444";
+                playSFX('wrong');
+            }
+            document.getElementById('scoreText').innerText = score;
+            updateProgress(75);
+        }
+
+        // Drag and Drop
+        function allowDrop(ev) { ev.preventDefault(); }
+        function drag(ev) { ev.dataTransfer.setData("text", ev.target.id); }
+        function drop(ev) {
+            ev.preventDefault();
+            var data = ev.dataTransfer.getData("text");
+            if(ev.target.id === 'drop1' && data === 'drag1') {
+                ev.target.appendChild(document.getElementById(data));
+                document.getElementById('ddResult').innerText = "🎉 Berhasil dipasangkan!";
+                document.getElementById('ddResult').style.color = "var(--success)";
+                score += 50;
+                document.getElementById('scoreText').innerText = score;
+                playSFX('drop');
+                updateProgress(100);
+            } else {
+                playSFX('wrong');
+            }
+        }
+
+        function resetLatihan() {
+            score = 0;
+            document.getElementById('scoreText').innerText = score;
+            document.getElementById('tfResult').innerText = "";
+            document.getElementById('ddResult').innerText = "";
+            // Reset drag drop positions
+            document.querySelector('.drag-container').appendChild(document.getElementById('drag1'));
+            playSFX('click');
+        }
+
+        // --- Refleksi Logic ---
+        function submitRefleksi(emoji, text) {
+            playSFX('click');
+            document.getElementById('refleksiResult').classList.remove('hidden');
+            document.getElementById('refStatus').innerText = emoji + " " + text;
+            document.getElementById('refProg').innerText = progress;
+        }
+
+        // --- Web Audio API (No External Audio Files Needed) ---
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        let audioCtx;
+        let isMuted = false;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new AudioContext();
+            }
+            if(audioCtx.state === 'suspended') audioCtx.resume();
+        }
+
+        function playSFX(type) {
+            if (isMuted) return;
+            initAudio();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            if (type === 'click') {
+                osc.type = 'sine'; osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+            } else if (type === 'correct' || type === 'drop') {
+                osc.type = 'triangle'; osc.frequency.setValueAtTime(400, audioCtx.currentTime); osc.frequency.setValueAtTime(600, audioCtx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+            } else if (type === 'wrong') {
+                osc.type = 'sawtooth'; osc.frequency.setValueAtTime(300, audioCtx.currentTime); osc.frequency.setValueAtTime(250, audioCtx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+            }
+        }
+
+        function toggleAudio() {
+            isMuted = !isMuted;
+            const btn = document.querySelector('button[aria-label="Toggle Musik Latar"]');
+            btn.innerText = isMuted ? "🔇 Unmute" : "🎵 Mute";
+        }
+
+        function playTTS() {
+            playSFX('click');
+            const text = document.getElementById('matDesc').innerText;
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'id-ID';
+                window.speechSynthesis.speak(utterance);
+            } else {
+                alert("Browser Anda tidak mendukung fitur audio pembacaan teks.");
+            }
+        }
+
+        // --- Fullscreen API ---
+        function toggleFullScreen() {
+            playSFX('click');
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.log(`Error attempting to enable fullscreen: ${err.message}`);
+                });
+            } else {
+                document.exitFullscreen();
+            }
+        }
+    </script>
+</body>
+</html>
